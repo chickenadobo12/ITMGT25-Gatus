@@ -122,6 +122,10 @@ def tic_tac_toe(board):
                 return print('X')
         if diagonal_up_down == 30:
                 return print('O')
+        if diagonal_down_up == 36:
+                return print('X')
+        if diagonal_down_up == 30:
+                return print('O')
         else:
                 return print('No Winner')
     
@@ -154,9 +158,13 @@ def tic_tac_toe(board):
             elif i == 40:
                 return print('O')
         if diagonal_up_down == 48:
-               return print('X')
+            return print('X')
         if diagonal_up_down == 40:
             return print('O')
+        if diagonal_down_up == 48:
+                return print('X')
+        if diagonal_down_up == 40:
+                return print('O')
         else:
             return print('No Winner')
         
@@ -192,6 +200,10 @@ def tic_tac_toe(board):
                return print('X')
         if diagonal_up_down == 50:
             return print('O')
+        if diagonal_down_up == 60:
+                return print('X')
+        if diagonal_down_up == 50:
+                return print('O')
         else:
             return print('No Winner')
         
@@ -227,6 +239,10 @@ def tic_tac_toe(board):
                return print('X')
         if diagonal_up_down == 60:
             return print('O')
+        if diagonal_down_up == 72:
+                return print('X')
+        if diagonal_down_up == 60:
+                return print('O')
         else:
             return print('No Winner')
 
