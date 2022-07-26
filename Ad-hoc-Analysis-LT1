@@ -1,0 +1,419 @@
+import pandas as pd
+import numpy as np
+
+data_path = './transaction-data-adhoc-analysis.json'
+
+transaction_df = pd.read_json(data_path)
+
+transaction_df
+
+transaction_df['month'] = pd.DatetimeIndex(transaction_df['transaction_date']).month
+
+transaction_df[["first_item", "second_item", "third_item"]] = transaction_df["transaction_items"].str.split(";", expand = True)
+
+transaction_df[["brand_name_first", "product_first", "total_number_first"]] = transaction_df["first_item"].str.split(",", expand = True)
+
+transaction_df[["brand_name_second", "product_second", "total_number_second"]] = transaction_df["second_item"].str.split(",", expand = True)
+
+transaction_df[["brand_name_third", "product_third", "total_number_third"]] = transaction_df["third_item"].str.split(",", expand = True)
+
+def remove_char(x):
+    characters_to_remove = "() x"
+    new_string = x
+    
+    if x == None:
+        return int('0')
+    
+    else:
+        for character in characters_to_remove:
+          new_string = new_string.replace(character, "")
+
+    return int(new_string)
+
+transaction_df["updated_total_number_first"] = transaction_df["total_number_first"].apply(lambda x: remove_char(x))
+
+transaction_df["updated_total_number_second"] = transaction_df["total_number_second"].apply(lambda x: remove_char(x))
+
+transaction_df["updated_total_number_third"] = transaction_df["total_number_third"].apply(lambda x: remove_char(x))
+
+x = transaction_df.groupby(transaction_df["product_first"])["updated_total_number_first"].sum()
+
+y = transaction_df.groupby(transaction_df["product_second"])["updated_total_number_second"].sum()
+
+z = transaction_df.groupby(transaction_df["product_third"])["updated_total_number_third"].sum()
+
+total_final = pd.concat([x, y, z], axis = 1)
+
+total_final
+
+x = transaction_df.groupby([transaction_df["month"], transaction_df["product_first"]])[["updated_total_number_first"]].sum()
+
+y = transaction_df.groupby([transaction_df["month"], transaction_df["product_second"]])["updated_total_number_second"].sum()
+
+z = transaction_df.groupby([transaction_df["month"], transaction_df["product_third"]])["updated_total_number_third"].sum()
+
+trial_df = pd.concat([x, y, z], axis=1)
+
+trial_df
+
+trial_df["sum_all"] = trial_df["updated_total_number_first"] + trial_df["updated_total_number_second"] + trial_df["updated_total_number_third"]
+
+trial_df["sum_all"]
+
+conditions_1 = [
+    (transaction_df["product_first"] == "Beef Chicharon"),
+    (transaction_df["product_first"] == "Gummy Vitamins"),
+    (transaction_df["product_first"] == "Gummy Worms"),
+    (transaction_df["product_first"] == "Kimchi and Seaweed"),
+    (transaction_df["product_first"] == "Nutrional Milk"),
+    (transaction_df["product_first"] == "Orange Beans"),
+    (transaction_df["product_first"] == "Yummy Vegetables")
+]
+
+
+conditions_2 = [
+    (transaction_df["product_second"] == "Beef Chicharon"),
+    (transaction_df["product_second"] == "Gummy Vitamins"),
+    (transaction_df["product_second"] == "Gummy Worms"),
+    (transaction_df["product_second"] == "Kimchi and Seaweed"),
+    (transaction_df["product_second"] == "Nutrional Milk"),
+    (transaction_df["product_second"] == "Orange Beans"),
+    (transaction_df["product_second"] == "Yummy Vegetables")
+]
+
+conditions_3 = [
+    (transaction_df["product_third"] == "Beef Chicharon"),
+    (transaction_df["product_third"] == "Gummy Vitamins"),
+    (transaction_df["product_third"] == "Gummy Worms"),
+    (transaction_df["product_third"] == "Kimchi and Seaweed"),
+    (transaction_df["product_third"] == "Nutrional Milk"),
+    (transaction_df["product_third"] == "Orange Beans"),
+    (transaction_df["product_third"] == "Yummy Vegetables")
+]
+
+values = [1299, 1500, 150, 799, 1990, 199, 500]
+
+transaction_df["Item_Price_1"] = np.select(conditions_1, values)
+
+transaction_df["Item_Price_2"] = np.select(conditions_2, values)
+
+transaction_df["Item_Price_3"] = np.select(conditions_3, values)
+
+transaction_df["Sale_Value_1"] = transaction_df["updated_total_number_first"] * transaction_df["Item_Price_1"]
+
+transaction_df["Sale_Value_2"] = transaction_df["updated_total_number_second"] * transaction_df["Item_Price_2"]
+
+transaction_df["Sale_Value_3"] = transaction_df["updated_total_number_third"] * transaction_df["Item_Price_3"]
+
+transaction_df
+
+o =transaction_df.groupby([transaction_df["month"],transaction_df["product_first"]])["Sale_Value_1"].sum()
+
+p =transaction_df.groupby([transaction_df["month"],transaction_df["product_second"]])["Sale_Value_2"].sum()
+
+k =transaction_df.groupby([transaction_df["month"],transaction_df["product_third"]])["Sale_Value_3"].sum()
+
+total_sale_pd = pd.concat([o, p, k], axis=1)
+
+transaction_df
+
+final_total_sale = total_sale_pd["Sale_Value_1"] + total_sale_pd["Sale_Value_2"] + total_sale_pd["Sale_Value_3"]
+
+final_total_sale
+
+table_df = transaction_df.pivot_table("updated_total_number_first", ["name"], "month", aggfunc="count", fill_value = 0)
+
+table_df["January"] = table_df[1].astype(int)
+table_df["February"] = table_df[2].astype(int)
+table_df["March"] = table_df[3].astype(int)
+table_df["April"] = table_df[4].astype(int)
+table_df["May"] = table_df[5].astype(int)
+table_df["June"] = table_df[6].astype(int)
+
+table_df
+
+def myfunc1(January):
+    if January > 0:
+        answer1 = "First Purchase"
+    else:
+        answer1 = "No Transaction"
+    return answer1
+
+def myfunc2(January, February):
+    if January > 0 and February == 0:
+        answer2 = "Inactive"
+    elif January > 0 and February > 0:
+        answer2 = "Repeater"
+    elif January == 0 and February > 0:
+        answer2 = "First Purchase"
+    elif January == 0 and February == 0:
+        answer2 = "No Transaction"
+    else:
+        answer2 = "Engaged"
+    return answer2
+        
+def myfunc3(January, February, March):
+    if January == 0 and February == 0 and March == 0:
+        answer3 = "No Transaction"
+    elif January == 0 and February > 0 and March > 0:
+        answer3 = "Repeater"
+    elif January > 0 and February == 0 and March == 0:
+        answer3 = "Inactive"
+    elif January == 0 and February > 0 and March == 0:
+        answer3 = "Inactive"
+    elif January > 0 and February > 0 and March == 0:
+        answer3 = "Inactive"
+    else: 
+        answer3 = "Engaged"
+    return answer3
+
+def myfunc4(January, February, March, April):
+    if January == 0 and February == 0 and March == 0 and April == 0:
+        answer4 = "No Transaction"
+    elif January == 0 and February > 0 and March > 0 and April > 0:
+        answer4 = "Repeater"
+    elif January == 0 and February == 0 and March > 0 and April > 0:
+        answer4 = "Repeater"
+    elif January > 0 and February == 0 and March > 0 and April > 0:
+        answer4 = "Repeater"
+    elif January > 0 and February == 0 and March == 0 and April == 0:
+        answer4 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April == 0:
+        answer4 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April == 0:
+        answer4 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April == 0:
+        answer4 = "Inactive"
+    elif January > 0 and February == 0 and March > 0 and April == 0:
+        answer4 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April == 0:
+        answer4 = "Inactive"
+    elif January > 0 and February > 0 and March > 0 and April == 0:
+        answer4 = "Inactive"
+    else:
+        answer4 = "Engaged"
+    return answer4
+        
+def myfunc5(January, February, March, April, May):
+    if January == 0 and February == 0 and March == 0 and April == 0 and May == 0: 
+        answer5= "No Transaction"
+    elif January > 0 and February == 0 and March == 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    elif January == 0 and February > 0 and March == 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    elif January == 0 and February == 0 and March > 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    elif January > 0 and February > 0 and March == 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    elif January > 0 and February == 0 and March > 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    elif January == 0 and February > 0 and March > 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    elif January == 0 and February == 0 and March == 0 and April > 0 and May > 0:
+        answer5= "Repeater"
+    #--------------------------------------------------------------------------
+    elif January > 0 and February == 0 and March == 0 and April == 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April == 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April == 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February == 0 and March == 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April == 0 and May == 0:
+        answer5 = "Inactive"    
+    elif January > 0 and February == 0 and March > 0 and April == 0 and May == 0:
+        answer5 = "Inactive"
+    elif January > 0 and February == 0 and March == 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April == 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January > 0 and February == 0 and March > 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    elif January > 0 and February > 0 and March > 0 and April == 0 and May == 0:
+        answer5 = "Inactive"   
+    elif January > 0 and February > 0 and March > 0 and April > 0 and May == 0:
+        answer5 = "Inactive"
+    else:
+        answer5 = "Engaged"
+    return answer5
+  
+
+def myfunc6(January, February, March, April, May,June):
+    if  January == 0 and February == 0 and March == 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "No Transaction"
+    elif January > 0 and February > 0 and March > 0 and April == 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January > 0 and February > 0 and March == 0 and April == 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January > 0 and February == 0 and March == 0 and April == 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January == 0 and February == 0 and March == 0 and April == 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January == 0 and February == 0 and March == 0 and April > 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January == 0 and February == 0 and March > 0 and April > 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January == 0 and February > 0 and March > 0 and April > 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January == 0 and February > 0 and March > 0 and April == 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January > 0 and February == 0 and March == 0 and April > 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January > 0 and February == 0 and March > 0 and April == 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    elif January == 0 and February > 0 and March == 0 and April > 0 and May > 0 and June > 0:
+        answer6 = "Repeater"
+    #-------------------------------------------------------------------------------------
+    elif January > 0 and February == 0 and March == 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March == 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March == 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March > 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March == 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March == 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March == 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March > 0 and April == 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March > 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March == 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February == 0 and March > 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March == 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March > 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March > 0 and April > 0 and May == 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March > 0 and April == 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February > 0 and March == 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January > 0 and February == 0 and March > 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    elif January == 0 and February > 0 and March > 0 and April > 0 and May > 0 and June == 0:
+        answer6 = "Inactive"
+    else:
+        answer6= "Engaged"
+    return answer6
+
+table_df["Purchase_Status_1"] = table_df.apply(lambda x: myfunc1(x["January"]), axis=1)
+
+table_df["Purchase_Status_2"] = table_df.apply(lambda x: myfunc2(x["January"], x["February"]), axis=1)
+
+table_df["Purchase_Status_3"] = table_df.apply(lambda x: myfunc3(x["January"], x["February"], x["March"]), axis=1)
+
+table_df["Purchase_Status_4"] = table_df.apply(lambda x: myfunc4(x["January"], x["February"], x["March"], x["April"]), axis=1)
+
+table_df["Purchase_Status_5"] = table_df.apply(lambda x: myfunc5(x["January"], x["February"], x["March"], x["April"], x["May"]), axis=1)
+
+table_df["Purchase_Status_6"] = table_df.apply(lambda x: myfunc6(x["January"], x["February"], x["March"], x["April"], x["May"],x["June"]), axis=1)
+
+
+a = table_df.loc[:, "Purchase_Status_1"].value_counts()
+
+b = table_df.loc[:, "Purchase_Status_2"].value_counts()
+
+c = table_df.loc[:, "Purchase_Status_3"].value_counts()
+
+d = table_df.loc[:, "Purchase_Status_4"].value_counts()
+
+e = table_df.loc[:, "Purchase_Status_5"].value_counts()
+
+f = table_df.loc[:, "Purchase_Status_6"].value_counts()
+
+final_df = pd.concat([a, b, c, d, e, f], axis = 1).fillna(0)
+
+final_df.astype(int)
+
+columns = ["Purchase_Status_1", "Purchase_Status_2", "Purchase_Status_3", "Purchase_Status_4", "Purchase_Status_5", "Purchase_Status_6"]
+index = ["Repeater", "Inactive", "Engaged"]
+
+customer_status = pd.DataFrame(data=final_df, index = index, columns = columns)
+        
+customer_status.astype(int)
+
+from datetime import datetime, date
+import matplotlib.pyplot as plt
+
+def age(born):
+    born = datetime.strptime(born, "%Y/%m/%d").date()
+    today = date.today()
+    return today.year - born.year - ((today.month, 
+                                      today.day) < (born.month, 
+                                                    born.day))
+
+transaction_df["Age"] = transaction_df["birthdate"].apply(age)
+
+print(transaction_df["Age"].agg("max"))
+print(transaction_df["Age"].agg("min"))
+
+print(transaction_df["transaction_value"].agg("mean"))
+print(transaction_df["transaction_value"].agg("max"))
+print(transaction_df["transaction_value"].agg("min"))
+
+boxplot = transaction_df.boxplot(column = ["transaction_value"])
+boxplot
+
+sex_distribution = transaction_df.loc[:, "sex"].value_counts()
+
+sex_distribution
+
+plt.bar(height= sex_distribution, x = ("F", "M"))
+
+x = transaction_df.groupby(transaction_df["brand_name_first"])[["updated_total_number_first"]].sum()
+
+y = transaction_df.groupby(transaction_df["brand_name_second"])["updated_total_number_second"].sum()
+
+z = transaction_df.groupby(transaction_df["brand_name_third"])["updated_total_number_third"].sum()
+
+brand_df = pd.concat([x, y, z], axis = 1)
+
+final_brand_df = brand_df["updated_total_number_first"] + brand_df["updated_total_number_second"] + brand_df["updated_total_number_third"]
+
+final_brand_df
+
+plt.pie(x = final_brand_df)
+print("Green = HealthyKid 3+")
+print("Orange = Candy City")
+print("Blue = Exotic Extras")
