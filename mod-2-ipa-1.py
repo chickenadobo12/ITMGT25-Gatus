@@ -34,9 +34,8 @@ def savings(gross_pay, tax_rate, expenses):
     # Replace `pass` with your code. 
     # Stay within the function. Only use the parameters as input. The function should return your answer.
     import math 
-    return (gross_pay - math.floor(gross_pay * tax_rate)) - expenses
+    return math.floor((gross_pay - (gross_pay * tax_rate))) - expenses
     
-
 
 def material_waste(total_material, material_units, num_jobs, job_consumption):
     '''Material Waste.
@@ -71,7 +70,13 @@ def material_waste(total_material, material_units, num_jobs, job_consumption):
     '''
     # Replace `pass` with your code. 
     # Stay within the function. Only use the parameters as input. The function should return your answer.
-    return print(str(total_material - (num_jobs * job_consumption)) + material_units)
+   
+    if (total_material - (num_jobs * job_consumption)) == 0:
+        answer1 = print("0" + material_units)
+    else:
+        answer1 = print(str(total_material - (num_jobs * job_consumption)) + material_units)
+        
+    return answer1
 
 def interest(principal, rate, periods):
     '''Interest.
@@ -135,4 +140,4 @@ def body_mass_index(weight, height):
     # Replace `pass` with your code. 
     # Stay within the function. Only use the parameters as input. The function should return your answer.
     list(height)
-    return (weight / 2.205)/((int(height[1]) / 39.37 + (int(height[0]) / 3.281) ** 2))
+    return (weight / 2.205)/(((int(height[1]) / 39.37) + (int(height[0]) / 3.281)) ** 2)
