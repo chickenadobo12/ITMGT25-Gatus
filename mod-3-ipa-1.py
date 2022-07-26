@@ -37,10 +37,15 @@ def shift_letter(letter, shift):
     '''
     # Replace `pass` with your code. 
     # Stay within the function. Only use the parameters as input. The function should return your answer.
-    if (ord(letter) + shift) > 90:
-        return print(chr(((ord(letter) + shift) - 90) + 64)) 
-    else:
-        return print(chr(ord(letter) + shift))
+     if letter == " ":
+        answer1 = " "
+    elif shift == _:
+        answer1 = letter
+    elif (ord(letter) + shift) > 90:
+        answer1 = chr(((ord(letter) + shift) - 90) + 64)
+    else: 
+        answer1 = chr(ord(letter) + shift)
+    return answer1
 
 def caesar_cipher(message, shift):
     '''Caesar Cipher. 
@@ -62,17 +67,11 @@ def caesar_cipher(message, shift):
     '''
     # Replace `pass` with your code. 
     # Stay within the function. Only use the parameters as input. The function should return your answer.
-    import collections
-    import string 
-
-    def caesar_cypher(message, shift):
-        upper = collections.deque(string.ascii_uppercase)
-    
-        upper.rotate(shift)
-    
-        upper = ''.join(list(upper))
-    
-        return print(message.translate(message.maketrans(string.ascii_uppercase, upper)))
+    shifted_string = ""
+    for characters in message:
+        shifted_string += shift_letter(characters, shift)
+        
+    return shifted_string
 
 def shift_by_letter(letter, letter_shift):
     '''Shift By Letter. 
@@ -102,16 +101,15 @@ def shift_by_letter(letter, letter_shift):
     '''
     # Replace `pass` with your code. 
     # Stay within the function. Only use the parameters as input. The function should return your answer.
-    import string
-    if letter == " " and letter_shift == "_":
-        answer1 = print()
-    elif letter_shift == "_":
-        answer1 = print(letter)
+     import string
+    if letter == " " and letter_shift == _:
+        answer1 = " "
+    elif letter_shift == _:
+        answer1 = letter
     elif (ord(letter) + int(list(string.ascii_uppercase).index(letter_shift))) > 90:
-        answer1 = print(chr(ord(letter) + int(list(string.ascii_uppercase).index(letter_shift)) - 90 + 64))
+        answer1 = chr(ord(letter) + int(list(string.ascii_uppercase).index(letter_shift)) - 90 + 64)
     else: 
-        answer1 = print(chr(ord(letter) + int(list(string.ascii_uppercase).index(letter_shift))))
-    return answer1
+        answer1 = chr(ord(letter) + int(list(string.ascii_uppercase).index(letter_shift)))
 
 def vigenere_cipher(message, key):
     '''Vigenere Cipher. 
